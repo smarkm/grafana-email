@@ -5,6 +5,7 @@ go 1.17
 require github.com/go-pdf/fpdf v0.8.0
 
 require (
+	github.com/denisbrodbeck/machineid v1.0.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.7.6 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
@@ -13,6 +14,7 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/golang/protobuf v1.3.3 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.9 // indirect

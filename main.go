@@ -1,18 +1,38 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 	"log"
+	"math"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
+	"time"
 
+	"github.com/denisbrodbeck/machineid"
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
 	"smark.freecoop.net/grafana-email/config"
 	"smark.freecoop.net/grafana-email/model"
 )
 
+var machineID string
+var scheduleLimit = 2
+
 func main() {
+	machineID = generateMachineID()
+
+	var version bool
+	flag.BoolVar(&version, "version", false, "Show version")
+	flag.Parse()
+
+	if version {
+		log.Println("Free v1.0.0 version with 2 email schedules limit")
+		os.Exit(0)
+	}
+
+	VerifyLisence()
 	config.Init()
 	db := model.InitDB()
 	router := gin.Default()
@@ -45,7 +65,7 @@ func main() {
 			db.Where("id = ?", id).Find(&s)
 			db.Delete(&s)
 			cr.Remove(cron.EntryID(s.CronID))
-			log.Println("Remove schedule id:%d, cronID:%d", v, s.CronID)
+			log.Printf("Remove schedule id:%s, cronID:%d", v, s.CronID)
 		}
 		c.JSON(200, gin.H{
 			"code": 0,
@@ -59,9 +79,11 @@ func main() {
 			c.JSON(http.StatusOK, gin.H{"code": 1, "msg": "error" + err.Error()})
 			return
 		}
-
-		log.Println("var ---:", s.Variables)
-		fmt.Println(s.ScheduleCronString())
+		if len(cr.Entries()) >= scheduleLimit {
+			msg := "Your backend only support " + strconv.Itoa(scheduleLimit) + " email schedule"
+			c.JSON(http.StatusOK, gin.H{"code": 1, "msg": msg})
+			return
+		}
 		if s.ID != 0 {
 			var tmpS model.Schedule
 			db.Where("id = ?", s.ID).Find(&tmpS)
@@ -71,14 +93,14 @@ func main() {
 			s.CronID = int(id)
 			s.EncodeDBModel()
 			db.Updates(&s)
-			log.Println("Update schedule id:%d,raw cronID:%d, new cronID:%d", tmpS.CronID, s.ID, id)
+			log.Printf("Update schedule id:%d,raw cronID:%d, new cronID:%d", tmpS.CronID, s.ID, id)
 		} else {
 			db.Create(&s)
 			id, _ := cr.AddJob(s.ScheduleCronString(), s)
 			s.CronID = int(id)
 			s.EncodeDBModel()
 			db.Updates(&s)
-			log.Println("New schedule id:%d,cronID:%d", s.ID, id)
+			log.Printf("New schedule id:%d,cronID:%d", s.ID, id)
 		}
 		c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "success"})
 	})
@@ -96,4 +118,33 @@ func main() {
 	//eyJrIjoiNGd0RElKaE1OcWtnY3Z1dDBhYTJiSDJTanNPaEVQN1oiLCJuIjoidGVzdCIsImlkIjoxfQ==
 
 	select {}
+}
+func VerifyLisence() {
+	userCode := "cb95d602-6eaf-4bfe-9e9d-18882738d49e"
+	if strings.EqualFold(userCode, machineID) {
+		allowTime := "2023-08-08 15:04:05"
+		parsedTime, _ := time.Parse("2006-01-02 15:04:05", allowTime)
+		if time.Now().After(parsedTime) {
+			log.Println("Your lisence got expired")
+			os.Exit(0)
+		}
+
+		//pass lisence verify
+		scheduleLimit = math.MaxInt64
+		log.Println("Your lisence will be expire by " + allowTime)
+	} else {
+		log.Println("No lisenced machine")
+
+		os.Exit(0)
+	}
+}
+func generateMachineID() string {
+	// 获取机器的唯一标识符，例如 MAC 地址
+	machineID, err := machineid.ID()
+	if err != nil {
+		log.Panicln("Failed to get machineID")
+		os.Exit(1)
+	}
+	log.Println("machineID: " + machineID)
+	return machineID
 }

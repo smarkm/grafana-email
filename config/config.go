@@ -1,5 +1,13 @@
 package config
 
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+)
+
 var Instance *Config = &Config{
 	GrafanaUrl: "http://localhost:3001",
 	OrgAPIKeys: make(map[string]string),
@@ -19,10 +27,24 @@ type Config struct {
 }
 
 func Init() *Config {
-	Instance.OrgAPIKeys["1"] = "eyJrIjoiVnVEbGhodlh2bHllV3J6bkFCcjN5TEZiUkFhY01RNkkiLCJuIjoiYSIsImlkIjoxfQ=="
-	Instance.EmailPasswd = "vktytcrfxcdojbha"
-	Instance.EmailFrom = "1187650061@qq.com"
-	Instance.EmailUserName = "1187650061@qq.com"
-	Instance.SmtpHost = "smtp.qq.com"
+	filePath := "./config.json"
+
+	// Read the file content
+	content, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		log.Fatal("Failed to read the file:", err)
+		os.Exit(0)
+	}
+
+	// Print the content of the file as a string
+	err = json.Unmarshal(content, &Instance)
+	if err != nil {
+		log.Println("Failed to parse config file: " + filePath)
+		os.Exit(0)
+	}
+	if Instance.DebugModel {
+		fmt.Println("Debug: " + string(content))
+	}
+
 	return Instance
 }

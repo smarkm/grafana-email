@@ -8,10 +8,10 @@ import (
 )
 
 func TestConver(t *testing.T) {
-	v := "{\"1\":1}"
+	Init()
 
 	var r map[int]string
-	e := json.Unmarshal([]byte(v), &r)
-	fmt.Println(e)
+	v, _ := json.Marshal(*Instance)
+	fmt.Println(string(v))
 	log.Println(r)
 }
