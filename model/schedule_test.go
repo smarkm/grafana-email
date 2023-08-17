@@ -56,7 +56,7 @@ func TestSchedule_Run(t *testing.T) {
 }
 
 func TestSendEmail(t *testing.T) {
-	config.Init()
+	config.Init("../config.json")
 
 	type args struct {
 		s Schedule
@@ -78,7 +78,7 @@ func TestSendEmail(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			SendEmail(tt.args.s)
+			tt.args.s.SendEmail()
 		})
 	}
 }

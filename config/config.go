@@ -13,6 +13,7 @@ var Instance *Config = &Config{
 	OrgAPIKeys: make(map[string]string),
 	EmailFrom:  "",
 	SmtpPort:   587,
+	HTTPPort:   8001,
 }
 
 type Config struct {
@@ -24,10 +25,19 @@ type Config struct {
 	EmailPasswd   string            `json:"emailPassword"`
 	SmtpHost      string            `json:"smtpHost"`
 	SmtpPort      int               `json:"smtpPort"`
+	PdfTitleAlign string            `json:"pdfTitleAlign"`
+	DBUser        string            `json:"dbUser"`
+	DBPassword    string            `json:"dbPassword"`
+	DBHost        string            `json:"dbHost"`
+	Database      string            `json:"database"`
+	HTTPPort      int               `json:"httpPort"`
 }
 
-func Init() *Config {
+func Init(file string) *Config {
 	filePath := "./config.json"
+	if file != "" {
+		filePath = file
+	}
 
 	// Read the file content
 	content, err := ioutil.ReadFile(filePath)

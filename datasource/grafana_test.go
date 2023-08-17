@@ -8,7 +8,7 @@ import (
 )
 
 func TestDashboardPanels(t *testing.T) {
-	config.Init()
+	config.Init("../config.json")
 
 	type args struct {
 		orgID string

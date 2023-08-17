@@ -8,7 +8,7 @@ import (
 )
 
 func TestPanelImage(t *testing.T) {
-	config.Init()
+	config.Init("../config.json")
 	type args struct {
 		orgID   string
 		dID     string

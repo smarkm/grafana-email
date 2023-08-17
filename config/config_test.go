@@ -8,7 +8,7 @@ import (
 )
 
 func TestConver(t *testing.T) {
-	Init()
+	Init("../config")
 
 	var r map[int]string
 	v, _ := json.Marshal(*Instance)

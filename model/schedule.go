@@ -18,7 +18,12 @@ import (
 var DB *gorm.DB
 
 func InitDB() *gorm.DB {
-	dsn := "root:1234@tcp(localhost:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
+	user := config.Instance.DBUser
+	passwd := config.Instance.DBPassword
+	dbHost := config.Instance.DBHost
+	database := config.Instance.Database
+	dsn := user + ":" + passwd + "@tcp(" + dbHost + ")/" + database + "?charset=utf8mb4&parseTime=True&loc=Local"
+	//dsn := "root:1234@tcp(localhost:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
 
 	// Open a MySQL database connection.
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -102,14 +107,15 @@ func (s Schedule) Run() {
 	log.Println("run job,"+string(sdata), err)
 
 	//send email
-	SendEmail(s)
+	s.SendEmail()
 
 	ls.Result = "success"
 	ls.NextEmailTime = time.Now().String()
+	ls.LasteEmailTime = time.Now().String()
 	DB.Updates(&ls)
 }
 
-func SendEmail(s Schedule) {
+func (s *Schedule) SendEmail() error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", config.Instance.EmailFrom)
 	m.SetHeader("To", strings.Split(s.Recipients, ",")...)
@@ -124,7 +130,7 @@ func SendEmail(s Schedule) {
 		pid := strconv.Itoa(v)
 		bytes := datasource.PanelImage(s.OrgID, s.DashboardID, pid, nil)
 		if i == 0 {
-			pdf.InsertImage("Test"+pid, pd, bytes)
+			pdf.InsertImage("Test"+pid, pd, bytes, 70)
 		} else {
 			pdf.InsertImageInNewPage("Test"+pid, pd, bytes)
 		}
@@ -135,7 +141,9 @@ func SendEmail(s Schedule) {
 	// Send the email
 	if err := d.DialAndSend(m); err != nil {
 		log.Fatal("Error sending email:", err)
+		return err
 	}
 
 	log.Println("Email sent successfully.")
+	return nil
 }

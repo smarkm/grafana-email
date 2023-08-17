@@ -19,11 +19,11 @@ import (
 
 var machineID string
 var scheduleLimit = 2
+var (
+	version bool
+)
 
-func main() {
-	machineID = generateMachineID()
-
-	var version bool
+func parseArgs() {
 	flag.BoolVar(&version, "version", false, "Show version")
 	flag.Parse()
 
@@ -31,9 +31,14 @@ func main() {
 		log.Println("Free v1.0.0 version with 2 email schedules limit")
 		os.Exit(0)
 	}
+}
 
+func main() {
+	machineID = generateMachineID()
+	parseArgs()
 	VerifyLisence()
-	config.Init()
+
+	config.Init("./config.json")
 	db := model.InitDB()
 	router := gin.Default()
 	cr := cron.New()
@@ -42,10 +47,15 @@ func main() {
 	db.Find(&ss)
 	for i := 0; i < len(ss); i++ {
 		s := ss[i]
-		id, _ := cr.AddJob(s.ScheduleCronString(), s)
+
+		id, err := cr.AddJob(s.ScheduleCronString(), s)
+		if err != nil {
+			log.Printf("Add schedule got error: %s", err.Error())
+		}
 		s.CronID = int(id)
 		db.Updates(&s)
 	}
+	log.Println("Update schedules", len(cr.Entries()), len(ss))
 	// Define a route for the root URL "/"
 	router.GET("/api/schedule/getScheduleList", func(c *gin.Context) {
 		var ss []model.Schedule
@@ -79,12 +89,19 @@ func main() {
 			c.JSON(http.StatusOK, gin.H{"code": 1, "msg": "error" + err.Error()})
 			return
 		}
-		if len(cr.Entries()) >= scheduleLimit {
-			msg := "Your backend only support " + strconv.Itoa(scheduleLimit) + " email schedule"
+		if len(cr.Entries()) > scheduleLimit && !strings.EqualFold("now", s.Recurs) {
+			msg := "Your backend only support " + strconv.Itoa(scheduleLimit) + " email schedule with test model, please contact provider to get full version"
 			c.JSON(http.StatusOK, gin.H{"code": 1, "msg": msg})
 			return
 		}
-		if s.ID != 0 {
+		if s.Recurs == "now" {
+			err := s.SendEmail()
+			if err != nil {
+				msg := "Faild send email: " + err.Error()
+				c.JSON(http.StatusOK, gin.H{"code": 1, "msg": msg})
+				return
+			}
+		} else if s.ID != 0 {
 			var tmpS model.Schedule
 			db.Where("id = ?", s.ID).Find(&tmpS)
 			s.CronID = tmpS.CronID
@@ -110,7 +127,7 @@ func main() {
 	})
 
 	// Run the server on port 8080
-	router.Run(":8001")
+	router.Run(":" + strconv.Itoa(config.Instance.HTTPPort))
 
 	// Schedule the job to run every minute
 
@@ -125,13 +142,13 @@ func VerifyLisence() {
 		allowTime := "2023-08-08 15:04:05"
 		parsedTime, _ := time.Parse("2006-01-02 15:04:05", allowTime)
 		if time.Now().After(parsedTime) {
-			log.Println("Your lisence got expired")
-			os.Exit(0)
+			log.Println("Your lisence got expired by" + allowTime + ", running with test model only " + strconv.Itoa(scheduleLimit) + " schedules allowed")
+		} else {
+			scheduleLimit = math.MaxInt64
+			//pass lisence verify
+			log.Println("Your lisence will be expire by " + allowTime)
 		}
 
-		//pass lisence verify
-		scheduleLimit = math.MaxInt64
-		log.Println("Your lisence will be expire by " + allowTime)
 	} else {
 		log.Println("No lisenced machine")
 

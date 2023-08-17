@@ -8,11 +8,11 @@ import (
 )
 
 func TestPDF(t *testing.T) {
-	config.Init()
+	config.Init("../config.json")
 	pd := InitPDF()
-	bytes := datasource.PanelImage(1, "Gfgpou3Vk", "4", nil)
-	InsertImage("test", pd, bytes)
-	bytes = datasource.PanelImage(1, "Gfgpou3Vk", "2", nil)
+	bytes := datasource.PanelImage("1", "Gfgpou3Vk", "4", nil)
+	InsertImage("test", pd, bytes, 70)
+	bytes = datasource.PanelImage("1", "Gfgpou3Vk", "2", nil)
 	InsertImageInNewPage("test2", pd, bytes)
 
 	pd.OutputFileAndClose("t.pdf")
