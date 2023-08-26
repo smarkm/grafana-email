@@ -12,6 +12,7 @@ type DashboardMeta struct {
 }
 type Dashboard struct {
 	Panels []Panel `json:"panels"`
+	Title  string  `json:"title"`
 }
 type Panel struct {
 	ID    int    `json:"id"`
@@ -19,7 +20,7 @@ type Panel struct {
 }
 
 // /api/dashboards/uid/${uid} //uid=dashboardID
-func DashboardPanels(orgID string, dID string) []int {
+func DashboardPanels(orgID string, dID string) (string, []int) {
 	apiKey := config.Instance.OrgAPIKeys[orgID]
 	c := resty.New()
 	rs, err := c.R().SetHeader("Authorization", "Bearer "+apiKey).
@@ -34,11 +35,11 @@ func DashboardPanels(orgID string, dID string) []int {
 		for i, p := range d.Dashboard.Panels {
 			panels[i] = p.ID
 		}
-		return panels
+		return d.Dashboard.Title, panels
 	}
 
 	if config.Instance.DebugModel {
 		log.Println("Debug: ")
 	}
-	return nil
+	return "", nil
 }

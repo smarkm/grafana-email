@@ -30,7 +30,7 @@ func TestDashboardPanels(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := DashboardPanels(tt.args.orgID, tt.args.dID); !reflect.DeepEqual(got, tt.want) {
+			if _, got := DashboardPanels(tt.args.orgID, tt.args.dID); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("DashboardPanels() = %v, want %v", got, tt.want)
 			}
 		})

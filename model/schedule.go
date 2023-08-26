@@ -124,8 +124,8 @@ func (s *Schedule) SendEmail() error {
 	// Create a new SMTP
 	c := config.Instance
 	d := gomail.NewDialer(c.SmtpHost, c.SmtpPort, c.EmailUserName, c.EmailPasswd)
-	panels := datasource.DashboardPanels(s.OrgID, s.DashboardID)
-	pd := pdf.InitPDF()
+	title, panels := datasource.DashboardPanels(s.OrgID, s.DashboardID)
+	pd := pdf.InitPDF(title)
 	for i, v := range panels {
 		pid := strconv.Itoa(v)
 		bytes := datasource.PanelImage(s.OrgID, s.DashboardID, pid, nil)

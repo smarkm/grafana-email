@@ -1,0 +1,20 @@
+{
+    "grafanaBaseUrl": "http://localhost:3001",
+    "orgAPIKeys": {
+        "1": "eyJrIjoiVnVEbGhodlh2bHllV3J6bkFCcjN5TEZiUkFhY01RNkkiLCJuIjoiYSIsImlkIjoxfQ==",
+        "2":""
+    },
+    "emailFrom": "",
+    "emailUserName": "",
+    "emailPassword": "",
+    "smtpHost": "smtp.qq.com",
+    "smtpPort": 587,
+    "debugModel":false,
+    "pdfTitleAlign":"left",
+    "fontPath":"",
+    "dbUser":"root",
+    "dbPassword":"1234",
+    "dbHost":"localhost:3306",
+    "database":"test",
+    "httpPort": 8001
+}

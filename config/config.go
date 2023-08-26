@@ -26,6 +26,7 @@ type Config struct {
 	SmtpHost      string            `json:"smtpHost"`
 	SmtpPort      int               `json:"smtpPort"`
 	PdfTitleAlign string            `json:"pdfTitleAlign"`
+	PDFFontPath   string            `json:"fontPath"`
 	DBUser        string            `json:"dbUser"`
 	DBPassword    string            `json:"dbPassword"`
 	DBHost        string            `json:"dbHost"`

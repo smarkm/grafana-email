@@ -9,7 +9,7 @@ import (
 
 func TestPDF(t *testing.T) {
 	config.Init("../config.json")
-	pd := InitPDF()
+	pd := InitPDF("中文")
 	bytes := datasource.PanelImage("1", "Gfgpou3Vk", "4", nil)
 	InsertImage("test", pd, bytes, 70)
 	bytes = datasource.PanelImage("1", "Gfgpou3Vk", "2", nil)

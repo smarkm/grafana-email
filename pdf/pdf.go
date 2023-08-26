@@ -2,6 +2,7 @@ package pdf
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/go-pdf/fpdf"
 	"smark.freecoop.net/grafana-email/config"
@@ -9,15 +10,20 @@ import (
 
 var pdfWidthMargin = 20.0
 
-func InitPDF() *fpdf.Fpdf {
+func InitPDF(title string) *fpdf.Fpdf {
 	pdf := fpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 16)
+	if !strings.EqualFold("", config.Instance.PDFFontPath) {
+		pdf.AddUTF8Font("", "B", config.Instance.PDFFontPath)
+		pdf.SetFont("", "B", 16)
+	} else {
+		pdf.SetFont("Arial", "B", 16)
+	}
 	pageWidth, _ := pdf.GetPageSize()
 
 	// Calculate the center position for the text
-	text := "Text in the Center of the Page"
-	textWidth := pdf.GetStringWidth(text)
+
+	textWidth := pdf.GetStringWidth(title)
 	x := (pageWidth - textWidth) / 2
 	switch config.Instance.PdfTitleAlign {
 	case "left":
@@ -26,7 +32,7 @@ func InitPDF() *fpdf.Fpdf {
 		x = pageWidth - textWidth - pdfWidthMargin
 	}
 	// Draw the centered text
-	pdf.Text(x, 40, text)
+	pdf.Text(x, 40, title)
 	pdf.Ln(-1)
 	return pdf
 }

@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
@@ -14,7 +16,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron/v3"
 	"smark.freecoop.net/grafana-email/config"
+	"smark.freecoop.net/grafana-email/datasource"
 	"smark.freecoop.net/grafana-email/model"
+	"smark.freecoop.net/grafana-email/pdf"
 )
 
 var machineID string
@@ -124,6 +128,44 @@ func main() {
 	router.GET("/api/schedule/tasks", func(c *gin.Context) {
 		//data, _ := json.Marshal(cr.Entries())
 		c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "success", "data": cr.Entries()})
+	})
+	router.GET("/api/schedule/pdf", func(c *gin.Context) {
+		orgID, _ := c.GetQuery("orgId")
+		dashboardID, _ := c.GetQuery("uid")
+		queryParams := make(map[string]string)
+
+		for key, values := range c.Request.URL.Query() {
+			if len(values) > 0 {
+				queryParams[key] = values[0]
+			}
+		}
+		title, panels := datasource.DashboardPanels(orgID, dashboardID)
+		log.Printf("dashboard:%s,%v", title, panels)
+		pd := pdf.InitPDF(title)
+		for i, v := range panels {
+			pid := strconv.Itoa(v)
+			bytes := datasource.PanelImage(orgID, dashboardID, pid, queryParams)
+			if i == 0 {
+				pdf.InsertImage(pid, pd, bytes, 70)
+			} else {
+				pdf.InsertImageInNewPage(pid, pd, bytes)
+			}
+		}
+		pdfFile := title + ".pdf"
+		err := pd.OutputFileAndClose(pdfFile)
+		if err != nil {
+			log.Panicln("Generate PDF got error:" + err.Error())
+		}
+		fileContent, err := ioutil.ReadFile(pdfFile)
+		if err != nil {
+			fmt.Println("Error reading file:", err)
+			return
+		}
+		c.Header("Content-Type", "application/pdf")
+		// Set the content disposition to make the browser download the file.
+		c.Header("Content-Disposition", "attachment; filename="+pdfFile)
+		// Write the PDF content as the response body.
+		c.Data(http.StatusOK, "application/pdf", fileContent)
 	})
 
 	// Run the server on port 8080
