@@ -171,7 +171,6 @@ func main() {
 	// Schedule the job to run every minute
 
 	// Start the cron scheduler
-	//eyJrIjoiNGd0RElKaE1OcWtnY3Z1dDBhYTJiSDJTanNPaEVQN1oiLCJuIjoidGVzdCIsImlkIjoxfQ==
 
 	select {}
 }
