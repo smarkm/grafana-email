@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/denisbrodbeck/machineid"
 	"github.com/gin-gonic/gin"
@@ -40,7 +38,6 @@ func parseArgs() {
 func main() {
 	machineID = generateMachineID()
 	parseArgs()
-	VerifyLisence()
 
 	config.Init("./config.json")
 	db := model.InitDB()
@@ -178,25 +175,7 @@ func main() {
 
 	select {}
 }
-func VerifyLisence() {
-	userCode := "cb95d602-6eaf-4bfe-9e9d-18882738d49e"
-	if strings.EqualFold(userCode, machineID) {
-		allowTime := "2023-08-08 15:04:05"
-		parsedTime, _ := time.Parse("2006-01-02 15:04:05", allowTime)
-		if time.Now().After(parsedTime) {
-			log.Println("Your lisence got expired by" + allowTime + ", running with test model only " + strconv.Itoa(scheduleLimit) + " schedules allowed")
-		} else {
-			scheduleLimit = math.MaxInt64
-			//pass lisence verify
-			log.Println("Your lisence will be expire by " + allowTime)
-		}
 
-	} else {
-		log.Println("No lisenced machine")
-
-		os.Exit(0)
-	}
-}
 func generateMachineID() string {
 	// 获取机器的唯一标识符，例如 MAC 地址
 	machineID, err := machineid.ID()
